@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ignatius Dating ❤️</title>
+<style>body{font-family:Arial;text-align:center;background:#fff0f5;margin:0;padding:15px}
+.card{background:white;border-radius:20px;padding:15px;max-width:380px;margin:auto;box-shadow:0 4px 20px #ccc}
+img{width:100%;border-radius:15px} button{padding:12px 20px;border:none;border-radius:30px;font-size:18px;margin:5px;cursor:pointer}
+.like{background:#ff2e63;color:white}.nope{background:#ddd}
+.chatbox{max-width:380px;margin:15px auto;text-align:left;background:white;padding:10px;border-radius:15px}
+.msg{background:#ffe4ec;padding:8px;border-radius:10px;margin:5px}.online{color:green;font-weight:bold}
+input{padding:10px;width:90%;margin:5px;border-radius:10px;border:1px solid #ccc}</style></head>
+<body>
+<h1>Ignatius Dating ❤️</h1>
+<!-- LOGIN -->
+<div id="loginDiv" class="card">
+  <h2>Login</h2>
+  <input id="email" placeholder="Email"><br>
+  <input id="pass" type="password" placeholder="Password"><br>
+  <button class="like" onclick="doLogin()">Login / Sign Up</button>
+</div>
+
+<!-- PROFILE -->
+<div id="mainDiv" style="display:none;">
+  <div class="card">
+    <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=500">
+    <h2>Sarah, 26 - Jinja</h2>
+    <p id="statusText" class="online">🟢 ONLINE NOW</p>
+    <p>Love hiking, coffee, live music!</p>
+    <button class="nope" onclick="swipe('dislike')">✖ NOPE</button>
+    <button class="like" onclick="swipe('like')">❤️ LIKE</button>
+  </div>
+  <div id="matchPopup" style="display:none;" class="card"><h2>🎉 IT'S A MATCH!</h2><p>You & Sarah liked each other!</p><button class="like" onclick="openChat()">💬 CHAT NOW</button></div>
+  <div id="chatSection" style="display:none;" class="chatbox">
+    <h3>Chat with Sarah <span class="online">🟢</span></h3>
+    <div id="messages"></div>
+    <input id="msgInput" placeholder="Type message...">
+    <button class="like" onclick="sendMsg()">Send</button>
+    <p id="lastSeen">Last seen: Just now</p>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, query, where, doc, setDoc, updateDoc, serverTimestamp, onSnapshot, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+// 👉 PASTE YOUR REAL CONFIG HERE FROM FIREBASE CONSOLE
+const firebaseConfig = {
+  apiKey: "PASTE_YOUR_API_KEY",
+  authDomain: "ignatius-dating-app.firebaseapp.com",
+  projectId: "ignatius-dating-app",
+  storageBucket: "ignatius-dating-app.appspot.com",
+  messagingSenderId: "PASTE_YOUR_SENDER_ID",
+  appId: "PASTE_YOUR_APP_ID"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+let currentUserId = null;
+
+// --- 100% AUTH ---
+window.doLogin = async () => {
+  const email = document.getElementById("email").value;
+  const pass = document.getElementById("pass").value;
+  try { await signInWithEmailAndPassword(auth, email, pass); }
+  catch(e){ await createUserWithEmailAndPassword(auth, email, pass); }
+};
+
+onAuthStateChanged(auth, async (user) => {
+  if(user){
+    currentUserId = user.uid;
+    document.getElementById("loginDiv").style.display="none";
+    document.getElementById("mainDiv").style.display="block";
+    // CREATE USER DOC + GO ONLINE
+    await setDoc(doc(db,"users",currentUserId),{email:user.email, isOnline:true, lastSeen:serverTimestamp()}, {merge:true});
+    listenToSarah();
+  }
+});
+
+// --- 100% ONLINE / LAST SEEN ---
+window.addEventListener("beforeunload", async ()=>{
+  if(currentUserId) await updateDoc(doc(db,"users",currentUserId),{isOnline:false, lastSeen:serverTimestamp()});
+});
+
+// Listen to Sarah's online status LIVE
+function listenToSarah(){
+  onSnapshot(doc(db,"users","sarahUID"), (snap)=>{
+    if(!snap.exists()) return;
+    const u = snap.data();
+    const el = document.getElementById("statusText");
+    if(u.isOnline){ el.innerText="🟢 ONLINE NOW"; }
+    else {
+      const t = u.lastSeen ? u.lastSeen.toDate().toLocaleString() : "long ago";
+      el.innerText = "Last seen: " + t;
+      document.getElementById("lastSeen").innerText = "Last seen: " + t;
+    }
+  });
+}
+
+// --- 100% MATCH LOGIC: BOTH MUST LIKE ---
+window.swipe = async (type)=>{
+  if(!currentUserId) return alert("Login first!");
+  if(type==="dislike"){ alert("Passed"); return; }
+  // 1. Save MY like
+  await addDoc(collection(db,"likes"),{from:currentUserId, to:"sarahUID", createdAt:serverTimestamp()});
+  // 2. Check if SARAH liked ME?
+  const q = query(collection(db,"likes"), where("from","==","sarahUID"), where("to","==",currentUserId));
+  const snap = await getDocs(q);
+  if(!snap.empty){
+    // BOTH LIKED! REAL MATCH!
+    await addDoc(collection(db,"matches"),{users:[currentUserId,"sarahUID"], createdAt:serverTimestamp(), status:"matched"});
+    document.getElementById("matchPopup").style.display="block";
+  } else {
+    alert("You liked Sarah ❤️ Waiting for her to like you back...");
+  }
+};
+
+// --- 100% CHAT ---
+window.openChat = ()=>{ document.getElementById("chatSection").style.display="block"; }
+window.sendMsg = async ()=>{
+  const text = document.getElementById("msgInput").value;
+  if(!text) return;
+  await addDoc(collection(db,"messages"),{conversationId: currentUserId+"_sarahUID", text:text, sentBy:currentUserId, sentAt:serverTimestamp()});
+  document.getElementById("messages").innerHTML += `<div class="msg"><b>You:</b> ${text}</div>`;
+  document.getElementById("msgInput").value="";
+};
+
+// --- 100% MY MATCHES QUERY ---
+onAuthStateChanged(auth, (user)=>{
+  if(!user) return;
+  const q = query(collection(db,"matches"), where("users","array-contains",user.uid));
+  onSnapshot(q,(snap)=>{ snap.forEach(d=> console.log("My Match:", d.data())); });
+});
+</script>
+</body></html>
