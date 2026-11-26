@@ -1,0 +1,15 @@
+{
+  "name": "Ignatius Kitooma Boy - Dating For Everyone",
+  "short_name": "Kitooma Boy",
+  "start_url": "app.html",
+  "display": "standalone",
+  "background_color": "#ff0066",
+  "theme_color": "#ff0066",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/833/833472.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
