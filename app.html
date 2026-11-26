@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ignatius Kitooma Boy - Dating For Everyone</title>
+<style>
+body{margin:0;font-family:Arial;background:#fff0f5;text-align:center}
+.top{background:#ff0066;color:white;padding:20px}
+.card{background:white;margin:12px;padding:15px;border-radius:15px;text-align:left;box-shadow:0 2px 8px #ccc}
+button{border:none;padding:12px;border-radius:20px;font-weight:bold}
+.like{background:#ff0066;color:white;width:48%}
+.chat{background:#0a1a4d;color:white;width:48%}
+input,select{width:95%;padding:11px;margin:5px;border:1px solid #ddd;border-radius:10px}
+.join{background:green;color:white;width:95%;font-size:17px}
+.tab{background:white;padding:10px;margin:5px;border-radius:20px}
+</style>
+</head>
+<body>
+
+<div class="top">
+<h1 style="margin:0">❤️ IGNATIUS KITOOMA BOY ❤️</h1>
+<p>Love • Friends • Fun - For EVERYONE!</p>
+<button onclick="show('home')" class="tab">🏠 Home</button>
+<button onclick="show('join')" class="tab">➕ Join</button>
+<button onclick="show('chat')" class="tab">💬 Chat</button>
+</div>
+
+<div id="home">
+<h2>Find Love in Uganda & The World 🌍</h2>
+<p>18+ Only. Be Kind. Be Respectful.</p>
+
+<div class="card">
+<h3>Ignatius, 20 - Kitooma, Kampala 🇺🇬</h3>
+<p>Kind, funny, hardworking. Love music & football. Founder.</p>
+<p>❤️ Wants: Dating, Friendship, Everything!</p>
+<button class="like" onclick="alert('You Liked Ignatius ❤️')">❤️ LIKE</button>
+<button class="chat" onclick="show('chat')">💬 CHAT</button>
+</div>
+
+<div class="card">
+<h3>Amina, 19 - Kampala 🇺🇬</h3>
+<p>Sweet, loves music, cooking. Looking for a kind boyfriend.</p>
+<p>❤️ Wants: Dating</p>
+<button class="like" onclick="alert('You Liked Amina ❤️')">❤️ LIKE</button>
+<button class="chat" onclick="show('chat')">💬 CHAT</button>
+</div>
+
+<div class="card">
+<h3>Daniel, 22 - Mbarara 🇺🇬</h3>
+<p>Footballer, funny. Wants good friends to enjoy life.</p>
+<p>🤝 Wants: Friendship</p>
+<button class="like" onclick="alert('You Liked Daniel ❤️')">❤️ LIKE</button>
+<button class="chat" onclick="show('chat')">💬 CHAT</button>
+</div>
+
+<div class="card">
+<h3>Grace, 21 - Entebbe 🇺🇬</h3>
+<p>Loves church, music, laughing. Wants real love.</p>
+<p>❤️ Wants: Everything!</p>
+<button class="like" onclick="alert('You Liked Grace ❤️')">❤️ LIKE</button>
+<button class="chat" onclick="show('chat')">💬 CHAT</button>
+</div>
+</div>
+
+<div id="join" style="display:none">
+<div class="card">
+<h2>🌍 JOIN FREE - CREATE YOUR PROFILE</h2>
+<input id="n" placeholder="Your Name">
+<input id="a" placeholder="Your Age">
+<input id="c" placeholder="Your City - e.g. Kampala">
+<select id="w"><option>Dating</option><option>Friendship</option><option>Fun & Chat</option><option>Everything!</option></select>
+<input id="about" placeholder="About You - e.g. I love music">
+<button class="join" onclick="joinNow()">CREATE MY PROFILE ❤️</button>
+<p id="msg"></p>
+</div>
+</div>
+
+<div id="chat" style="display:none">
+<div class="card">
+<h2>💬 CHAT ROOM - Everyone</h2>
+<p><b>Ignatius:</b> Welcome everyone! Say Hi! 👋</p>
+<p><b>Amina:</b> Hi! Anyone from Kampala? ❤️</p>
+<p><b>Daniel:</b> Yo! Let's talk football ⚽</p>
+<input id="chatInput" placeholder="Type your message...">
+<button class="join" onclick="sendChat()">SEND 💬</button>
+<p id="chatMsg"></p>
+</div>
+</div>
+
+<div style="padding:15px">
+<p><b>What You Can Do:</b><br>❤️ Dating | 🤝 Friendship | 💬 Chat | 🎵 Music | ⚽ Football | ☕ Meet Up</p>
+<p>Made with Love by Ignatius Akankwatsa<br>Kitooma, Kampala, Uganda 🇺🇬</p>
+</div>
+
+<script>
+function show(id){
+document.getElementById('home').style.display='none';
+document.getElementById('join').style.display='none';
+document.getElementById('chat').style.display='none';
+document.getElementById(id).style.display='block';
+}
+function joinNow(){
+let name=document.getElementById('n').value;
+if(!name){alert('Please type your name');return;}
+document.getElementById('msg').innerHTML='Welcome '+name+'! ❤️ Your profile is created! Now people can LIKE you!';
+alert('Welcome '+name+'! You joined Ignatius Kitooma Boy App!');
+}
+function sendChat(){
+let t=document.getElementById('chatInput').value;
+if(!t){return;}
+document.getElementById('chatMsg').innerHTML='You: '+t+' ✅ Sent!';
+document.getElementById('chatInput').value='';
+}
+</script>
+</body>
+</html>
