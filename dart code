@@ -1,0 +1,41 @@
+import 'package:flutter/material.dart';
+import 'package:webview_flutter/webview_flutter.dart';
+void main() { WidgetsFlutterBinding.ensureInitialized(); runApp(const MyApp()); }
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+  @override Widget build(BuildContext context) {
+    return const MaterialApp(debugShowCheckedModeBanner: false, home: WebViewScreen());
+  }
+}
+class WebViewScreen extends StatefulWidget {
+  const WebViewScreen({super.key});
+  @override State<WebViewScreen> createState() => _WebViewScreenState();
+}
+class _WebViewScreenState extends State<WebViewScreen> {
+  late final WebViewController _controller;
+  bool isLoading = true;
+  @override void initState() {
+    super.initState();
+    _controller = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setNavigationDelegate(NavigationDelegate(onPageFinished: (_) => setState(() => isLoading = false)))
+      ..loadRequest(Uri.parse('https://ignatius-dating-app.web.app'));
+  }
+  Future<bool> _onBack() async {
+    if (await _controller.canGoBack()) { await _controller.goBack(); return false; }
+    return true;
+  }
+  @override Widget build(BuildContext context) {
+    return WillPopScope(
+      onWillPop: _onBack,
+      child: Scaffold(body: SafeArea(child: Stack(children: [
+        WebViewWidget(controller: _controller),
+        if (isLoading) const Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+          CircularProgressIndicator(color: Colors.pink),
+          SizedBox(height: 10),
+          Text("Ignatius Dating ❤️", style: TextStyle(color: Colors.pink, fontWeight: FontWeight.bold))
+        ]))
+      ]))),
+    );
+  }
+}
