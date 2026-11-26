@@ -1,7 +1,10 @@
+
 <!DOCTYPE html>
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ff0066">
+<link rel="manifest" href="manifest.json">
 <title>Ignatius Kitooma Boy - Dating For Everyone</title>
 <style>
 body{margin:0;font-family:Arial;background:#fff0f5;text-align:center}
@@ -13,6 +16,7 @@ button{border:none;padding:12px;border-radius:20px;font-weight:bold}
 input,select{width:95%;padding:11px;margin:5px;border:1px solid #ddd;border-radius:10px}
 .join{background:green;color:white;width:95%;font-size:17px}
 .tab{background:white;padding:10px;margin:5px;border-radius:20px}
+img.profile{width:100%;border-radius:12px;max-height:250px;object-fit:cover}
 </style>
 </head>
 <body>
@@ -28,48 +32,20 @@ input,select{width:95%;padding:11px;margin:5px;border:1px solid #ddd;border-radi
 <div id="home">
 <h2>Find Love in Uganda & The World 🌍</h2>
 <p>18+ Only. Be Kind. Be Respectful.</p>
-
-<div class="card">
-<h3>Ignatius, 20 - Kitooma, Kampala 🇺🇬</h3>
-<p>Kind, funny, hardworking. Love music & football. Founder.</p>
-<p>❤️ Wants: Dating, Friendship, Everything!</p>
-<button class="like" onclick="alert('You Liked Ignatius ❤️')">❤️ LIKE</button>
-<button class="chat" onclick="show('chat')">💬 CHAT</button>
-</div>
-
-<div class="card">
-<h3>Amina, 19 - Kampala 🇺🇬</h3>
-<p>Sweet, loves music, cooking. Looking for a kind boyfriend.</p>
-<p>❤️ Wants: Dating</p>
-<button class="like" onclick="alert('You Liked Amina ❤️')">❤️ LIKE</button>
-<button class="chat" onclick="show('chat')">💬 CHAT</button>
-</div>
-
-<div class="card">
-<h3>Daniel, 22 - Mbarara 🇺🇬</h3>
-<p>Footballer, funny. Wants good friends to enjoy life.</p>
-<p>🤝 Wants: Friendship</p>
-<button class="like" onclick="alert('You Liked Daniel ❤️')">❤️ LIKE</button>
-<button class="chat" onclick="show('chat')">💬 CHAT</button>
-</div>
-
-<div class="card">
-<h3>Grace, 21 - Entebbe 🇺🇬</h3>
-<p>Loves church, music, laughing. Wants real love.</p>
-<p>❤️ Wants: Everything!</p>
-<button class="like" onclick="alert('You Liked Grace ❤️')">❤️ LIKE</button>
-<button class="chat" onclick="show('chat')">💬 CHAT</button>
-</div>
+<div id="profiles"></div>
 </div>
 
 <div id="join" style="display:none">
 <div class="card">
 <h2>🌍 JOIN FREE - CREATE YOUR PROFILE</h2>
 <input id="n" placeholder="Your Name">
-<input id="a" placeholder="Your Age">
+<input id="a" placeholder="Your Age" type="number">
 <input id="c" placeholder="Your City - e.g. Kampala">
 <select id="w"><option>Dating</option><option>Friendship</option><option>Fun & Chat</option><option>Everything!</option></select>
 <input id="about" placeholder="About You - e.g. I love music">
+<p><b>Your Photo:</b></p>
+<input type="file" id="photo" accept="image/*">
+<img id="preview" style="width:100%;border-radius:12px;display:none;margin-top:10px">
 <button class="join" onclick="joinNow()">CREATE MY PROFILE ❤️</button>
 <p id="msg"></p>
 </div>
@@ -78,12 +54,13 @@ input,select{width:95%;padding:11px;margin:5px;border:1px solid #ddd;border-radi
 <div id="chat" style="display:none">
 <div class="card">
 <h2>💬 CHAT ROOM - Everyone</h2>
+<div id="chatBox">
 <p><b>Ignatius:</b> Welcome everyone! Say Hi! 👋</p>
 <p><b>Amina:</b> Hi! Anyone from Kampala? ❤️</p>
 <p><b>Daniel:</b> Yo! Let's talk football ⚽</p>
+</div>
 <input id="chatInput" placeholder="Type your message...">
 <button class="join" onclick="sendChat()">SEND 💬</button>
-<p id="chatMsg"></p>
 </div>
 </div>
 
@@ -93,24 +70,83 @@ input,select{width:95%;padding:11px;margin:5px;border:1px solid #ddd;border-radi
 </div>
 
 <script>
+if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js'); }
+
+let defaultProfiles = [
+{name:'Ignatius',age:20,city:'Kitooma, Kampala 🇺🇬',about:'Kind, funny, hardworking. Love music & football. Founder.',want:'Wants: Dating, Friendship, Everything!',photo:''},
+{name:'Amina',age:19,city:'Kampala 🇺🇬',about:'Sweet, loves music, cooking. Looking for a kind boyfriend.',want:'Wants: Dating',photo:''},
+{name:'Daniel',age:22,city:'Mbarara 🇺🇬',about:'Footballer, funny. Wants good friends to enjoy life.',want:'Wants: Friendship',photo:''},
+{name:'Grace',age:21,city:'Entebbe 🇺🇬',about:'Loves church, music, laughing. Wants real love.',want:'Wants: Everything!',photo:''}
+];
+
+let saved = JSON.parse(localStorage.getItem('kitooma_profiles') || '[]');
+let allProfiles = [...defaultProfiles, ...saved];
+let savedChats = JSON.parse(localStorage.getItem('kitooma_chats') || '[]');
+
+function renderProfiles(){
+let html = '';
+allProfiles.forEach(p=>{
+html += `<div class="card">${p.photo ? `<img class="profile" src="${p.photo}">` : ''}<h3>${p.name}, ${p.age} - ${p.city}</h3><p>${p.about}</p><p>❤️ ${p.want}</p><button class="like" onclick="alert('You Liked ${p.name} ❤️')">❤️ LIKE</button> <button class="chat" onclick="show('chat')">💬 CHAT</button></div>`;
+});
+document.getElementById('profiles').innerHTML = html;
+}
+
+function renderChats(){
+savedChats.forEach(c=>{
+document.getElementById('chatBox').innerHTML += `<p><b>You:</b> ${c}</p>`;
+});
+}
+
 function show(id){
 document.getElementById('home').style.display='none';
 document.getElementById('join').style.display='none';
 document.getElementById('chat').style.display='none';
 document.getElementById(id).style.display='block';
 }
+
+let photoData = '';
+document.getElementById('photo').addEventListener('change', function(e){
+let file = e.target.files[0];
+if(!file) return;
+let reader = new FileReader();
+reader.onload = function(ev){
+photoData = ev.target.result;
+let prev = document.getElementById('preview');
+prev.src = photoData;
+prev.style.display='block';
+};
+reader.readAsDataURL(file);
+});
+
 function joinNow(){
 let name=document.getElementById('n').value;
+let age=document.getElementById('a').value;
+let city=document.getElementById('c').value;
+let want=document.getElementById('w').value;
+let about=document.getElementById('about').value;
 if(!name){alert('Please type your name');return;}
-document.getElementById('msg').innerHTML='Welcome '+name+'! ❤️ Your profile is created! Now people can LIKE you!';
+if(!age){alert('Please type your age');return;}
+let newProfile = {name:name, age:age, city:city, about:about || 'New here! Say Hi!', want:'Wants: '+want, photo:photoData};
+saved.push(newProfile);
+localStorage.setItem('kitooma_profiles', JSON.stringify(saved));
+allProfiles.push(newProfile);
+renderProfiles();
+document.getElementById('msg').innerHTML='Welcome '+name+'! ❤️ Your profile is saved! Now people can LIKE you!';
 alert('Welcome '+name+'! You joined Ignatius Kitooma Boy App!');
+show('home');
 }
+
 function sendChat(){
 let t=document.getElementById('chatInput').value;
 if(!t){return;}
-document.getElementById('chatMsg').innerHTML='You: '+t+' ✅ Sent!';
+savedChats.push(t);
+localStorage.setItem('kitooma_chats', JSON.stringify(savedChats));
+document.getElementById('chatBox').innerHTML += `<p><b>You:</b> ${t} ✅</p>`;
 document.getElementById('chatInput').value='';
 }
+
+renderProfiles();
+renderChats();
 </script>
 </body>
 </html>
