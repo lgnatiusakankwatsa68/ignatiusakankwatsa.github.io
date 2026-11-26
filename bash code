@@ -1,0 +1,4 @@
+flutter pub get
+firebase deploy --only hosting,firestore:rules
+flutter run
+flutter build apk --release
